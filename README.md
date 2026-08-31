@@ -2,7 +2,7 @@
 
 Collection of simple parsers used to extract metadata from CCSDS compliant frames.
 
-## Installation:
+## Installation
 
 via `cargo`:
 
@@ -10,7 +10,28 @@ via `cargo`:
 cargo install --git https://github.com/koloiyolo/ccsds_parsers
 ```
 
-## Example usage:
+### Nix
+
+via `home-manager`:
+
+```nix
+{ pkgs, ... }:
+
+{
+  home.packages = [
+
+    (pkgs.callPackage (pkgs.fetchFromGitHub {
+      owner = "koloiyolo";
+      repo = "ccsds_parsers";
+      rev = "c98856fad74f3f077a698a96bbda63cf691446e8"; # commit hash or tag.
+      hash = "sha256-r823eqXhVNlXuJOxlb8STTpt0O3Qrv61QQCJRV1p+oA=";
+      # sha256 checksum, please correct if nix fails the check.
+    }) { })
+  ];
+}
+```
+
+## Example usage
 
 via `cargo`:
 
