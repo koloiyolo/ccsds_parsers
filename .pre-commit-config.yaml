@@ -4,3 +4,9 @@ repos:
     hooks:
       - id: fmt
       - id: clippy
+  - repo: local
+    hooks:
+      - id: lint
+        name: mdlint
+        language: system
+        entry: uvx mdlint check
