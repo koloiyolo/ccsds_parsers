@@ -16,6 +16,12 @@ like:
 cargo run -- abbaabbaff2137abbaabbaff2137
 ```
 
+Run with flag `--help` for all available options:
+
+```bash
+cargo run -- --help
+```
+
 ## Supported -- current status
 
 ### Space Data Link TM

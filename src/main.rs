@@ -1,10 +1,15 @@
+mod cli;
+
 use ccsds_parsers::space_data_link::basic::telemetry::parsed::ParsedTmTransferFrame;
 
+use crate::cli::{CcsdsProtocol, Cli};
+use clap::Parser;
+
 fn main() {
-    let arguments: Vec<String> = std::env::args().collect();
-    let frame = arguments.get(1);
-    match frame {
-        Some(frame) => match hex::decode(frame) {
+    let arguments = Cli::parse();
+    let frame = arguments.frame;
+    match arguments.protocol {
+        CcsdsProtocol::DataLinkTm => match hex::decode(frame) {
             Ok(frame_bytes) => match ParsedTmTransferFrame::try_from(frame_bytes) {
                 Ok(parsed_frame) => {
                     println!("{parsed_frame}")
@@ -13,6 +18,7 @@ fn main() {
             },
             Err(e) => eprintln!("Failed to decode provided frame: {e}"),
         },
-        None => eprintln!("Frame not passed."),
+        CcsdsProtocol::DataLinkTc => todo!("CLTU parser not yet implemented"),
+        CcsdsProtocol::SpacePacket => todo!("SpacePacket parser not yet implemented"),
     }
 }
