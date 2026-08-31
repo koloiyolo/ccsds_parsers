@@ -33,22 +33,20 @@ via `home-manager`:
 
 ## Example usage
 
-via `cargo`:
-
 ```bash
-cargo run -- <YOUR_FRAME>
+ccsds_parsers <YOUR_FRAME>
 ```
 
 like:
 
 ```bash
-cargo run -- abbaabbaff2137abbaabbaff2137
+ccsds_parsers abbaabbaff2137abbaabbaff2137
 ```
 
 Run with flag `--help` for all available options:
 
 ```bash
-cargo run -- --help
+ccsds_parsers --help
 ```
 
 ## Supported -- current status
