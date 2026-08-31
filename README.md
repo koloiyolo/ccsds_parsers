@@ -2,6 +2,14 @@
 
 Collection of simple parsers used to extract metadata from CCSDS compliant frames.
 
+## Installation:
+
+via `cargo`:
+
+```bash
+cargo install --git https://github.com/koloiyolo/ccsds_parsers
+```
+
 ## Example usage:
 
 via `cargo`:
