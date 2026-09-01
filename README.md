@@ -34,13 +34,13 @@ via `home-manager`:
 ## Example usage
 
 ```bash
-ccsds_parsers <YOUR_FRAME>
+ccsds_parsers -p <PROTOCOL> <YOUR_FRAME>
 ```
 
 like:
 
 ```bash
-ccsds_parsers abbaabbaff2137abbaabbaff2137
+ccsds_parsers -p tm_datalink abbaabbaff2137abbaabbaff2137
 ```
 
 Run with flag `--help` for all available options:
