@@ -56,7 +56,7 @@ ccsds_parsers --help
 - [x] Primary header parsing
 - [ ] Secondary header parsing
 - [ ] OCF Parsing
-- [ ] CRC16 checksum check
+- [x] CRC16 checksum check
 
 ### Space Data Link TC
 
