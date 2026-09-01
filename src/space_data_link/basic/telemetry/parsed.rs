@@ -1,20 +1,24 @@
 use crate::space_data_link::basic::{
-    errors::ParserError, telemetry::primary_header::TransferFramePrimaryHeader,
+    errors::ParserError,
+    telemetry::{crc::Crc16Check, primary_header::TransferFramePrimaryHeader},
 };
 
 pub struct ParsedTmTransferFrame {
     pub primary_header: TransferFramePrimaryHeader,
+    pub crc_check: Crc16Check,
     pub frame: Vec<u8>,
 }
 
 impl TryFrom<Vec<u8>> for ParsedTmTransferFrame {
     type Error = ParserError;
 
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        let primary_header = TransferFramePrimaryHeader::try_from(value.as_slice())?;
+    fn try_from(frame: Vec<u8>) -> Result<Self, Self::Error> {
+        let primary_header = TransferFramePrimaryHeader::try_from(frame.as_slice())?;
+        let crc_check = Crc16Check::try_from(frame.as_slice())?;
         Ok(Self {
-            frame: value,
+            frame,
             primary_header,
+            crc_check,
         })
     }
 }
@@ -24,7 +28,8 @@ impl std::fmt::Display for ParsedTmTransferFrame {
         writeln!(f, "Parsed Telemetry Transfer Frame")?;
         writeln!(f)?;
         writeln!(f, "{}", self.primary_header)?;
-        Ok(())
+        writeln!(f)?;
+        writeln!(f, "{}", self.crc_check)
     }
 }
 
@@ -55,7 +60,10 @@ mod tests {
                 "    Packet Order Flag: 1\n",
                 "    Segment Length ID: 0b1\n",
                 "    First Header pointer: 973\n",
-                "  Frame: a5b31234abcd\n",
+                "  Frame: a5b31234abcd\n\n",
+                "CRC-16 Check:\tFailed\n",
+                "  Checksum:\t0xcdff\n",
+                "  Calculated:\t0x92e1\n",
             )
         );
     }

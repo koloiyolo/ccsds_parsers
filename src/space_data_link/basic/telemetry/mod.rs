@@ -2,4 +2,5 @@
 
 pub mod parsed;
 
+mod crc;
 mod primary_header;

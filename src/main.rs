@@ -8,14 +8,17 @@ use clap::Parser;
 fn main() {
     let arguments = Cli::parse();
     let frame = arguments.frame;
+    let offset = arguments.offset;
     match arguments.protocol {
         CcsdsProtocol::DataLinkTm => match hex::decode(frame) {
-            Ok(frame_bytes) => match ParsedTmTransferFrame::try_from(frame_bytes) {
-                Ok(parsed_frame) => {
-                    println!("{parsed_frame}")
+            Ok(frame_bytes) => {
+                match ParsedTmTransferFrame::try_from(frame_bytes[offset..].to_vec()) {
+                    Ok(parsed_frame) => {
+                        println!("{parsed_frame}")
+                    }
+                    Err(e) => eprintln!("Failed to parse provided frame. \nReason: {e:?}"),
                 }
-                Err(e) => eprintln!("Failed to parse provided frame. \nReason: {e:?}"),
-            },
+            }
             Err(e) => eprintln!("Failed to decode provided frame: {e}"),
         },
         CcsdsProtocol::DataLinkTc => todo!("CLTU parser not yet implemented"),
