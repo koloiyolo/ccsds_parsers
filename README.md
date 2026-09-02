@@ -40,7 +40,7 @@ ccsds_parsers -p <PROTOCOL> <YOUR_FRAME>
 like:
 
 ```bash
-ccsds_parsers -p tm_datalink abbaabbaff2137abbaabbaff2137
+ccsds_parsers -p tm_datalink a5b31234abcdff
 ```
 
 Run with flag `--help` for all available options:
@@ -71,7 +71,11 @@ N/A
 - [CCSDS Space Packet protocol]
 - [CCSDS TM Space Data link protocol]
 - [CCSDS TC Space Data link protocol]
+- [CCSDS Space Data Link Security Protocol]
+- [CCSDS Space Data Link Security Protocol—Extended Procedures]
 
 [CCSDS Space Packet protocol]: https://ccsds.org/publications/bluebooks/entry/3264/
 [CCSDS TM Space Data link protocol]: https://ccsds.org/publications/bluebooks/entry/3274/
 [CCSDS TC Space Data link protocol]: https://ccsds.org/publications/bluebooks/entry/3261/
+[CCSDS Space Data Link Security Protocol]: https://ccsds.org/publications/bluebooks/entry/3258/
+[CCSDS Space Data Link Security Protocol—Extended Procedures]: https://ccsds.org/publications/bluebooks/entry/3259/
