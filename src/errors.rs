@@ -4,4 +4,6 @@ pub enum ParserError {
     ValueOutOfBounds { value: String, parsed_type: String },
     /// Raised when failed to calculate CRC.
     CrcCheckFailed { reason: String },
+    /// Raised when provided value is not binary representation.
+    InvalidBinaryValue(u32),
 }

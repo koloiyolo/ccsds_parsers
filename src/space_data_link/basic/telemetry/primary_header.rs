@@ -1,4 +1,4 @@
-use crate::{space_data_link::basic::errors::ParserError, utils::extract_value_from_left};
+use crate::{errors::ParserError, utils::extract_value_from_left};
 
 #[derive(Debug, Clone, Copy)]
 pub enum OperationalControlFieldFlag {
