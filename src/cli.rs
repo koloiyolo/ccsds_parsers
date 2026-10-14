@@ -21,7 +21,8 @@ pub enum CcsdsProtocol {
         alias = "cadu",
         alias = "datalinktm",
         alias = "data_link_tm",
-        alias = "tm_datalink"
+        alias = "tm_datalink",
+        alias = "tmtf"
     )]
     DataLinkTm,
 
@@ -31,7 +32,8 @@ pub enum CcsdsProtocol {
         alias = "spacedatalinktc",
         alias = "datalinktc",
         alias = "data_link_tc",
-        alias = "tc_datalink"
+        alias = "tc_datalink",
+        alias = "tctf"
     )]
     DataLinkTc,
     #[value(name = "spacepacket", alias = "spp", alias = "space_packet")]
