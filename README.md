@@ -40,7 +40,11 @@ ccsds_parsers -p <PROTOCOL> <YOUR_FRAME>
 like:
 
 ```bash
-ccsds_parsers -p tm_datalink a5b31234abcdff
+ccsds_parsers -p tmtf a5b31234abcdff
+```
+
+```bash
+ccsds_parsers -p spp 0C00C001000A48656C6C6F5370616365
 ```
 
 Run with flag `--help` for all available options:
@@ -57,6 +61,7 @@ ccsds_parsers --help
 - [ ] Secondary header parsing
 - [x] OCF Parsing
 - [x] CRC16 checksum check
+- [ ] Telemetry Channel Coding
 
 ### Space Data Link TC
 
@@ -64,7 +69,8 @@ N/A
 
 ### Space Packet
 
-N/A
+- [x] Primary header parsing
+- [ ] Secondary header parsing
 
 ## Bibliography
 

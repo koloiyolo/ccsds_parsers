@@ -6,4 +6,9 @@ pub enum ParserError {
     CrcCheckFailed { reason: String },
     /// Raised when provided value is not binary representation.
     InvalidBinaryValue(u32),
+    /// Invalid frame length.
+    InvalidFrameLength {
+        expected_size_bytes: usize,
+        received_size_bytes: usize,
+    },
 }
