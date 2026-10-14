@@ -64,7 +64,8 @@ N/A
 
 ### Space Packet
 
-N/A
+- [x] Primary header parsing
+- [ ] Secondary header parsing
 
 ## Bibliography
 
