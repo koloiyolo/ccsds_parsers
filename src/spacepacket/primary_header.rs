@@ -1,25 +1,30 @@
-use crate::{errors::ParserError, utils::extract_value_from_left};
+use crate::errors::ParserError;
+use deku::prelude::{DekuContainerRead, DekuRead, DekuWrite};
 
 const PRIMARY_HEADER_SIZE: usize = 6;
 const DEFAULT_DISPLAY_PREFIX: &str = "  ";
 
 /// https://ccsds.org/Pubs/133x0b2e2.pdf
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, DekuRead, DekuWrite)]
+#[deku(endian = "big")]
 pub struct PrimaryHeader {
+    #[deku(bits = 3)]
     pub packet_version_number: u8,
     pub packet_type: PacketType,
     pub secondary_header_flag: SecondaryHeaderFlag,
+    #[deku(bits = 11)]
     pub application_process_id: u16,
+    #[deku(bits = 2)]
     pub sequence_flags: u8,
+    #[deku(bits = 14)]
     pub packet_sequence_count: u16,
     pub packet_data_length: u16,
+    #[deku(skip, default = "Vec::new()")]
     pub frame: Vec<u8>,
 }
 
-impl TryFrom<&[u8]> for PrimaryHeader {
-    type Error = ParserError;
-
-    fn try_from(frame: &[u8]) -> Result<Self, Self::Error> {
+impl PrimaryHeader {
+    pub fn parse(frame: &[u8]) -> Result<Self, ParserError> {
         if frame.len() < PRIMARY_HEADER_SIZE {
             return Err(ParserError::InvalidFrameLength {
                 expected_size_bytes: PRIMARY_HEADER_SIZE,
@@ -27,31 +32,22 @@ impl TryFrom<&[u8]> for PrimaryHeader {
             });
         }
 
-        let first_octets_pair = u16::from_be_bytes([frame[0], frame[1]]);
-        let packet_version_number = extract_value_from_left(first_octets_pair, 0, 3) as u8;
+        let (_, mut header) = Self::from_bytes((frame, 0)).map_err(map_deku_error)?;
+        header.frame = frame[..PRIMARY_HEADER_SIZE].to_vec();
+        Ok(header)
+    }
+}
 
-        let packet_type =
-            PacketType::try_from(extract_value_from_left(first_octets_pair, 3, 1) as u8)?;
-        let secondary_header_flag =
-            SecondaryHeaderFlag::try_from(extract_value_from_left(first_octets_pair, 4, 1) as u8)?;
-
-        let application_process_id = extract_value_from_left(first_octets_pair, 5, 11);
-
-        let second_octets_pair = u16::from_be_bytes([frame[2], frame[3]]);
-        let sequence_flags = extract_value_from_left(second_octets_pair, 0, 2) as u8;
-        let packet_sequence_count = extract_value_from_left(second_octets_pair, 2, 14);
-
-        let packet_data_length = u16::from_be_bytes([frame[4], frame[5]]);
-        Ok(Self {
-            packet_version_number,
-            packet_type,
-            secondary_header_flag,
-            application_process_id,
-            sequence_flags,
-            packet_sequence_count,
-            packet_data_length,
-            frame: frame[..PRIMARY_HEADER_SIZE].to_vec(),
-        })
+fn map_deku_error(error: deku::DekuError) -> ParserError {
+    match error {
+        deku::DekuError::IdVariantNotFound => ParserError::ValueOutOfBounds {
+            value: "unknown enum discriminator".into(),
+            parsed_type: "PacketType or SecondaryHeaderFlag".into(),
+        },
+        error => ParserError::ValueOutOfBounds {
+            value: format!("{error:?}"),
+            parsed_type: "PrimaryHeader".into(),
+        },
     }
 }
 
@@ -104,26 +100,19 @@ impl std::fmt::Display for PrimaryHeader {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, DekuRead, DekuWrite)]
 #[repr(u8)]
+#[deku(
+    id_type = "u8",
+    bits = "1",
+    endian = "endian",
+    ctx = "endian: deku::ctx::Endian"
+)]
 pub enum PacketType {
+    #[deku(id = "0")]
     Telecommand,
+    #[deku(id = "1")]
     Telemetry,
-}
-
-impl TryFrom<u8> for PacketType {
-    type Error = ParserError;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(Self::Telecommand),
-            1 => Ok(Self::Telemetry),
-            _ => Err(ParserError::ValueOutOfBounds {
-                value: value.to_string(),
-                parsed_type: "PacketType".into(),
-            }),
-        }
-    }
 }
 
 impl std::fmt::Display for PacketType {
@@ -139,26 +128,19 @@ impl std::fmt::Display for PacketType {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, DekuRead, DekuWrite)]
 #[repr(u8)]
+#[deku(
+    id_type = "u8",
+    bits = "1",
+    endian = "endian",
+    ctx = "endian: deku::ctx::Endian"
+)]
 pub enum SecondaryHeaderFlag {
+    #[deku(id = 0b0)]
     Present,
+    #[deku(id = 0b1)]
     NotPresent,
-}
-
-impl TryFrom<u8> for SecondaryHeaderFlag {
-    type Error = ParserError;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(Self::Present),
-            1 => Ok(Self::NotPresent),
-            _ => Err(ParserError::ValueOutOfBounds {
-                value: value.to_string(),
-                parsed_type: "SecondaryHeaderFlag".into(),
-            }),
-        }
-    }
 }
 
 impl std::fmt::Display for SecondaryHeaderFlag {
@@ -176,13 +158,15 @@ impl std::fmt::Display for SecondaryHeaderFlag {
 
 #[cfg(test)]
 mod tests {
+    use deku::prelude::DekuContainerWrite;
+
     use super::*;
 
     #[test]
     fn parses_primary_header_with_version_zero() {
         let frame = [0x09, 0x23, 0xA5, 0x67, 0x01, 0x02];
 
-        let header = PrimaryHeader::try_from(&frame[..]).unwrap();
+        let header = PrimaryHeader::parse(&frame[..]).unwrap();
 
         assert_eq!(header.packet_version_number, 0b000);
         assert_eq!(header.packet_type, PacketType::Telecommand);
@@ -194,34 +178,26 @@ mod tests {
         assert_eq!(header.sequence_flags, 0b10);
         assert_eq!(header.packet_sequence_count, 0x2567);
         assert_eq!(header.packet_data_length, 0x0102);
+        assert_eq!(header.to_bytes().unwrap(), frame);
     }
 
     #[test]
     fn too_short_primary_header_frame_is_rejected() {
         let frame = [0x09, 0x23, 0xA5, 0x67];
 
-        let header = PrimaryHeader::try_from(&frame[..]);
+        let header = PrimaryHeader::parse(&frame[..]);
 
         assert!(header.is_err());
     }
 
     #[test]
-    fn parses_packet_type_values() {
-        assert_eq!(PacketType::try_from(0).unwrap(), PacketType::Telecommand);
-        assert_eq!(PacketType::try_from(1).unwrap(), PacketType::Telemetry);
-        assert!(PacketType::try_from(2).is_err());
-    }
+    fn parses_telemetry_packet_with_secondary_header() {
+        let frame = [0x10, 0x00, 0, 0, 0, 0];
 
-    #[test]
-    fn parses_secondary_header_flag_values() {
-        assert_eq!(
-            SecondaryHeaderFlag::try_from(0).unwrap(),
-            SecondaryHeaderFlag::Present
-        );
-        assert_eq!(
-            SecondaryHeaderFlag::try_from(1).unwrap(),
-            SecondaryHeaderFlag::NotPresent
-        );
-        assert!(SecondaryHeaderFlag::try_from(2).is_err());
+        let header = PrimaryHeader::parse(&frame[..]).unwrap();
+
+        assert_eq!(header.packet_type, PacketType::Telemetry);
+        assert_eq!(header.secondary_header_flag, SecondaryHeaderFlag::Present);
+        assert_eq!(header.to_bytes().unwrap(), frame);
     }
 }
