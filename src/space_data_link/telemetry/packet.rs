@@ -7,14 +7,14 @@ use crate::{
     },
 };
 
-pub struct ParsedTmTransferFrame {
+pub struct TelemetryTransferFrame {
     pub primary_header: TransferFramePrimaryHeader,
     pub operational_control_field: Option<OperationalControlField>,
     pub crc_check: Crc16Check,
     pub frame: Vec<u8>,
 }
 
-impl TryFrom<Vec<u8>> for ParsedTmTransferFrame {
+impl TryFrom<Vec<u8>> for TelemetryTransferFrame {
     type Error = ParserError;
 
     fn try_from(frame: Vec<u8>) -> Result<Self, Self::Error> {
@@ -35,7 +35,7 @@ impl TryFrom<Vec<u8>> for ParsedTmTransferFrame {
     }
 }
 
-impl std::fmt::Display for ParsedTmTransferFrame {
+impl std::fmt::Display for TelemetryTransferFrame {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Parsed Telemetry Transfer Frame")?;
         writeln!(f)?;
@@ -55,8 +55,9 @@ mod tests {
 
     #[test]
     fn telemetry_transfer_frame_has_readable_display() {
-        let frame = ParsedTmTransferFrame::try_from(vec![0xa5, 0xb3, 0x12, 0x34, 0xab, 0xcd, 0xff])
-            .expect("Checked frame");
+        let frame =
+            TelemetryTransferFrame::try_from(vec![0xa5, 0xb3, 0x12, 0x34, 0xab, 0xcd, 0xff])
+                .expect("Checked frame");
 
         assert_eq!(
             frame.to_string(),
