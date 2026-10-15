@@ -1,7 +1,7 @@
 mod cli;
 
 use ccsds_parsers::{
-    space_data_link::telemetry::packet::ParsedTmTransferFrame, spacepacket::SpacePacket,
+    space_data_link::telemetry::packet::TelemetryTransferFrame, spacepacket::SpacePacket,
 };
 
 use crate::cli::{CcsdsProtocol, Cli};
@@ -20,7 +20,7 @@ fn main() {
     };
     match arguments.protocol {
         CcsdsProtocol::DataLinkTm => {
-            match ParsedTmTransferFrame::try_from(frame[offset..].to_vec()) {
+            match TelemetryTransferFrame::try_from(frame[offset..].to_vec()) {
                 Ok(parsed_frame) => {
                     println!("{parsed_frame}")
                 }
