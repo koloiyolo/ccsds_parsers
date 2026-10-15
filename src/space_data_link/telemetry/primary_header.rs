@@ -1,5 +1,9 @@
 use crate::{errors::ParserError, utils::extract_value_from_left};
 
+const TMTF_DATA_FIELD_STATUS_BIT_OFFSET: u16 = 32;
+
+const TMTF_PRIMARY_HEADER_SIZE: usize = 6;
+
 #[derive(Debug, Clone, Copy)]
 pub enum OperationalControlFieldFlag {
     NotPresent = 0,
@@ -92,8 +96,6 @@ impl From<u16> for MasterChannelIdentifier {
     }
 }
 
-const TF_DATA_FIELD_STATUS_BIT_OFFSET: u16 = 32;
-
 #[derive(Debug, Clone, Copy)]
 pub struct TransferFrameDataFieldStatus {
     pub secondary_header_flag: SecondaryHeaderFlag,
@@ -123,17 +125,17 @@ impl TryFrom<&[u8]> for TransferFrameDataFieldStatus {
         let tf_data_field = u16::from_be_bytes([value[4], value[5]]);
         let secondary_header_flag = SecondaryHeaderFlag::try_from(extract_value_from_left(
             tf_data_field,
-            32 - TF_DATA_FIELD_STATUS_BIT_OFFSET,
+            32 - TMTF_DATA_FIELD_STATUS_BIT_OFFSET,
             1,
         ) as u8)?;
         let synchronization_flag =
-            extract_value_from_left(tf_data_field, 33 - TF_DATA_FIELD_STATUS_BIT_OFFSET, 1) as u8;
+            extract_value_from_left(tf_data_field, 33 - TMTF_DATA_FIELD_STATUS_BIT_OFFSET, 1) as u8;
         let packet_order_flag =
-            extract_value_from_left(tf_data_field, 34 - TF_DATA_FIELD_STATUS_BIT_OFFSET, 1) as u8;
+            extract_value_from_left(tf_data_field, 34 - TMTF_DATA_FIELD_STATUS_BIT_OFFSET, 1) as u8;
         let segment_length_id =
-            extract_value_from_left(tf_data_field, 35 - TF_DATA_FIELD_STATUS_BIT_OFFSET, 2) as u8;
+            extract_value_from_left(tf_data_field, 35 - TMTF_DATA_FIELD_STATUS_BIT_OFFSET, 2) as u8;
         let first_header_pointer =
-            extract_value_from_left(tf_data_field, 37 - TF_DATA_FIELD_STATUS_BIT_OFFSET, 11);
+            extract_value_from_left(tf_data_field, 37 - TMTF_DATA_FIELD_STATUS_BIT_OFFSET, 11);
         Ok(Self {
             secondary_header_flag,
             synchronization_flag,
@@ -152,7 +154,7 @@ pub struct TransferFramePrimaryHeader {
     pub master_channel_frame_count: u8,
     pub virtual_channel_frame_count: u8,
     pub transfer_frame_data_field_status: TransferFrameDataFieldStatus,
-    pub frame: Vec<u8>,
+    pub frame: [u8; TMTF_PRIMARY_HEADER_SIZE],
 }
 
 impl std::fmt::Display for TransferFramePrimaryHeader {
@@ -186,7 +188,7 @@ impl std::fmt::Display for TransferFramePrimaryHeader {
             "  Data Field Status:\n{}",
             self.transfer_frame_data_field_status
         )?;
-        write!(f, "  Frame: {}", hex::encode(&self.frame))
+        write!(f, "  Frame: {}", hex::encode(self.frame))
     }
 }
 
@@ -203,7 +205,9 @@ impl TryFrom<&[u8]> for TransferFramePrimaryHeader {
             extract_value_from_left(primary_header_head, 15, 1) as u8,
         )?;
         let transfer_frame_data_field_status = TransferFrameDataFieldStatus::try_from(value)?;
-        let frame = value[..6].to_vec();
+        let frame = value[..TMTF_PRIMARY_HEADER_SIZE]
+            .try_into()
+            .expect("Enforced by const value");
         Ok(Self {
             master_channel_id,
             virtual_channel_id,
