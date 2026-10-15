@@ -13,7 +13,7 @@ pub struct PrimaryHeader {
     pub sequence_flags: SequenceFlags,
     pub packet_sequence_count: u16,
     pub packet_data_length: u16,
-    pub frame: Vec<u8>,
+    pub frame: [u8; PRIMARY_HEADER_SIZE],
 }
 
 impl TryFrom<&[u8]> for PrimaryHeader {
@@ -51,7 +51,9 @@ impl TryFrom<&[u8]> for PrimaryHeader {
             sequence_flags,
             packet_sequence_count,
             packet_data_length,
-            frame: frame[..PRIMARY_HEADER_SIZE].to_vec(),
+            frame: frame[..PRIMARY_HEADER_SIZE]
+                .try_into()
+                .expect("Enforced by const value"),
         })
     }
 }
@@ -100,7 +102,7 @@ impl std::fmt::Display for PrimaryHeader {
         writeln!(
             f,
             "{DEFAULT_DISPLAY_PREFIX}  Frame: {}",
-            hex::encode(&self.frame)
+            hex::encode(self.frame)
         )
     }
 }
