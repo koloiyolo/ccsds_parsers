@@ -53,11 +53,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ccsds"
+version = "0.1.0"
+dependencies = [
+ "crc16",
+ "hex",
+]
+
+[[package]]
 name = "ccsds_parsers"
 version = "0.1.0"
 dependencies = [
+ "ccsds",
  "clap",
- "crc16",
  "hex",
 ]
 

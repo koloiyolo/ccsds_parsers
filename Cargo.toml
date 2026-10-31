@@ -1,17 +1,8 @@
-[package]
-name = "ccsds_parsers"
+[workspace]
+resolver = "3"
+
+members = ["ccsds_parsers", "ccsds"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
-
-[dependencies]
-clap = { version="4.6.6", features=["derive"] }
-crc16 = "0.4.0"
-hex = "0.4.3"
-
-[[bench]]
-name = "spacepacket"
-harness = false
-
-[[bench]]
-name = "tmtf"
-harness = false

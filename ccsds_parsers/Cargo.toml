@@ -1,0 +1,10 @@
+[package]
+name = "ccsds_parsers"
+version.workspace = true
+edition.workspace = true
+
+
+[dependencies]
+ccsds = { path = "../ccsds" }
+clap = { version = "4.6.6", features = ["derive"] }
+hex = "0.4.3"
