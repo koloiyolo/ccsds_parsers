@@ -1,8 +1,6 @@
 mod cli;
 
-use ccsds_parsers::{
-    space_data_link::telemetry::packet::TelemetryTransferFrame, spacepacket::SpacePacket,
-};
+use ccsds::{space_data_link::telemetry::packet::TelemetryTransferFrame, spacepacket::SpacePacket};
 
 use crate::cli::{CcsdsProtocol, Cli};
 use clap::Parser;

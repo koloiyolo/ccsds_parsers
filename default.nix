@@ -3,11 +3,12 @@
 }:
 
 let
-  cargoToml = fromTOML (builtins.readFile ./Cargo.toml);
+  packageToml = fromTOML (builtins.readFile ./ccsds_parsers/Cargo.toml);
+  workspaceToml = fromTOML (builtins.readFile ./Cargo.toml);
 in
 pkgs.rustPlatform.buildRustPackage {
-  pname = cargoToml.package.name;
-  version = cargoToml.package.version;
+  pname = packageToml.package.name;
+  version = workspaceToml.workspace.package.version;
 
   src = ./.;
 
