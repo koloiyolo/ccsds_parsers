@@ -64,7 +64,7 @@ mod tests {
 
         let spp = SpacePacket::try_from(frame).unwrap();
         assert_eq!(spp.primary_header.packet_version_number, 0b000);
-        assert_eq!(spp.primary_header.packet_type, PacketType::Telecommand);
+        assert_eq!(spp.primary_header.packet_type, PacketType::Telemetry);
         assert_eq!(
             spp.primary_header.secondary_header_flag,
             SecondaryHeaderFlag::Present

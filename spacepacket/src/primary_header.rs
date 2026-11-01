@@ -1,4 +1,5 @@
 use common::{ParserError, extract_value_from_left};
+use deku::{DekuRead, DekuSize, DekuWrite};
 
 const DEFAULT_DISPLAY_PREFIX: &str = "  ";
 
@@ -33,8 +34,11 @@ impl TryFrom<&[u8]> for PrimaryHeader {
         let first_octets_pair = u16::from_be_bytes([frame[0], frame[1]]);
         let packet_version_number = extract_value_from_left(first_octets_pair, 0, 3) as u8;
 
-        let packet_type =
-            PacketType::try_from(extract_value_from_left(first_octets_pair, 3, 1) as u8)?;
+        let packet_type = PacketType::try_from(extract_value_from_left(
+            first_octets_pair,
+            PacketType::SPP_HEADER_POSITION as u16,
+            1,
+        ) as u8)?;
         let secondary_header_flag =
             SecondaryHeaderFlag::try_from(extract_value_from_left(first_octets_pair, 4, 1) as u8)?;
 
@@ -111,11 +115,24 @@ impl std::fmt::Display for PrimaryHeader {
 }
 
 /// https://ccsds.org/publications/bluebooks/entry/3264/ page 33
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Bit 3 of the Packet Primary Header shall contain the Packet Type.
+///
+/// The Packet Type shall be used to distinguish Packets used for telemetry (or reporting)
+/// from Packets used for telecommand (or requesting).
+/// For a telemetry (or reporting) Packet, this bit shall be set to ‘0’;
+/// for a telecommand (or requesting) Packet, this bit shall be set to ‘1’.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, DekuRead, DekuWrite, DekuSize)]
 #[repr(u8)]
+#[deku(bits = "1", id_type = "u8", endian = "big")]
 pub enum PacketType {
-    Telecommand,
-    Telemetry,
+    Telemetry = Self::TELEMETRY_BIT_VALUE,
+    Telecommand = Self::TELECOMMAND_BIT_VALUE,
+}
+
+impl PacketType {
+    const TELEMETRY_BIT_VALUE: u8 = 0b0;
+    const TELECOMMAND_BIT_VALUE: u8 = 0b1;
+    const SPP_HEADER_POSITION: usize = 3;
 }
 
 impl TryFrom<u8> for PacketType {
@@ -123,8 +140,8 @@ impl TryFrom<u8> for PacketType {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(Self::Telecommand),
-            1 => Ok(Self::Telemetry),
+            Self::TELEMETRY_BIT_VALUE => Ok(Self::Telemetry),
+            Self::TELECOMMAND_BIT_VALUE => Ok(Self::Telecommand),
             _ => Err(ParserError::ValueOutOfBounds {
                 value: value.to_string(),
                 parsed_type: "PacketType".into(),
@@ -147,11 +164,12 @@ impl std::fmt::Display for PacketType {
 }
 
 /// https://ccsds.org/publications/bluebooks/entry/3264/ page 33
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, DekuRead, DekuWrite, DekuSize)]
 #[repr(u8)]
+#[deku(bits = "1", id_type = "u8", endian = "big")]
 pub enum SecondaryHeaderFlag {
-    NotPresent,
-    Present,
+    NotPresent = 0,
+    Present = 1,
 }
 
 impl TryFrom<u8> for SecondaryHeaderFlag {
@@ -226,6 +244,8 @@ impl std::fmt::Display for SequenceFlags {
 
 #[cfg(test)]
 mod tests {
+    use deku::DekuContainerRead;
+
     use super::*;
 
     #[test]
@@ -235,7 +255,7 @@ mod tests {
         let header = PrimaryHeader::try_from(&frame[..]).unwrap();
 
         assert_eq!(header.packet_version_number, 0b000);
-        assert_eq!(header.packet_type, PacketType::Telecommand);
+        assert_eq!(header.packet_type, PacketType::Telemetry);
         assert_eq!(header.secondary_header_flag, SecondaryHeaderFlag::Present);
         assert_eq!(header.application_process_id, 0x123);
         assert_eq!(header.sequence_flags, SequenceFlags::EndSegment);
@@ -254,9 +274,24 @@ mod tests {
 
     #[test]
     fn parse_packet_type_values() {
-        assert_eq!(PacketType::try_from(0).unwrap(), PacketType::Telecommand);
-        assert_eq!(PacketType::try_from(1).unwrap(), PacketType::Telemetry);
-        assert!(PacketType::try_from(2).is_err());
+        // Imperative implementation
+        assert_eq!(
+            PacketType::try_from(PacketType::TELECOMMAND_BIT_VALUE).unwrap(),
+            PacketType::Telecommand
+        );
+        assert_eq!(
+            PacketType::try_from(PacketType::TELEMETRY_BIT_VALUE).unwrap(),
+            PacketType::Telemetry
+        );
+        assert!(PacketType::try_from(0b11).is_err());
+
+        // Declarative implementation
+        let (_, result) =
+            PacketType::from_bytes((&[0b0001_0000], PacketType::SPP_HEADER_POSITION)).unwrap();
+        assert_eq!(result, PacketType::Telecommand);
+        let (_, result) =
+            PacketType::from_bytes((&[0b0000_0000], PacketType::SPP_HEADER_POSITION)).unwrap();
+        assert_eq!(result, PacketType::Telemetry)
     }
 
     #[test]
