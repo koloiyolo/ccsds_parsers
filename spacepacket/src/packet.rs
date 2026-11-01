@@ -15,7 +15,7 @@ impl TryFrom<Vec<u8>> for SpacePacket {
     type Error = ParserError;
 
     fn try_from(frame: Vec<u8>) -> Result<Self, Self::Error> {
-        let primary_header = PrimaryHeader::try_from(frame.as_slice())?;
+        let primary_header = PrimaryHeader::try_from(&frame)?;
         let packet_data = match primary_header.secondary_header_flag {
             SecondaryHeaderFlag::NotPresent => frame[PrimaryHeader::SIZE..].to_vec(),
             SecondaryHeaderFlag::Present => {

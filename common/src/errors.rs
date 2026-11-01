@@ -1,3 +1,5 @@
+use deku::DekuError;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParserError {
     /// Raised when value is out of bounds for the parsed type.
@@ -11,4 +13,12 @@ pub enum ParserError {
         expected_size_bytes: usize,
         received_size_bytes: usize,
     },
+    /// Error raised by [deku] library.
+    RaisedByDeku(DekuError),
+}
+
+impl From<DekuError> for ParserError {
+    fn from(err: DekuError) -> Self {
+        ParserError::RaisedByDeku(err)
+    }
 }
