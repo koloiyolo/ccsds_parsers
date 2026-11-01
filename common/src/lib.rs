@@ -1,3 +1,7 @@
+mod errors;
+
+pub use errors::ParserError;
+
 fn extract_value(value: u16, offset: u16, width: u16) -> u16 {
     let mask = (1 << width) - 1;
     (value >> offset) & mask

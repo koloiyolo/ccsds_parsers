@@ -1,10 +1,9 @@
-use crate::{
-    errors::ParserError,
-    space_data_link::telemetry::{
-        crc::Crc16Check,
-        operational_control_field::OperationalControlField,
-        primary_header::{OperationalControlFieldFlag, TransferFramePrimaryHeader},
-    },
+use common::ParserError;
+
+use crate::telemetry::{
+    crc::Crc16Check,
+    operational_control_field::OperationalControlField,
+    primary_header::{OperationalControlFieldFlag, TransferFramePrimaryHeader},
 };
 
 pub struct TelemetryTransferFrame {

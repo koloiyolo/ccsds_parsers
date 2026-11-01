@@ -1,4 +1,4 @@
-use crate::{errors::ParserError, utils::extract_value_from_left};
+use common::{ParserError, extract_value_from_left};
 
 const OCF_START_IDX_FROM_RIGHT: usize = 6;
 const OCF_END_DIX_FROM_RIGHT: usize = 2;

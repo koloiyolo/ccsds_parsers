@@ -1,7 +1,7 @@
 [workspace]
 resolver = "3"
 
-members = ["ccsds_parsers", "ccsds"]
+members = ["ccsds_parsers", "space_data_link", "spacepacket", "common"]
 
 [workspace.package]
 version = "0.1.0"

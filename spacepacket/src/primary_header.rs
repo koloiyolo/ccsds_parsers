@@ -1,6 +1,5 @@
-use crate::{errors::ParserError, utils::extract_value_from_left};
+use common::{ParserError, extract_value_from_left};
 
-pub const PRIMARY_HEADER_SIZE: usize = 6;
 const DEFAULT_DISPLAY_PREFIX: &str = "  ";
 
 /// https://ccsds.org/publications/bluebooks/entry/3264/ page 32
@@ -13,16 +12,20 @@ pub struct PrimaryHeader {
     pub sequence_flags: SequenceFlags,
     pub packet_sequence_count: u16,
     pub packet_data_length: u16,
-    pub frame: [u8; PRIMARY_HEADER_SIZE],
+    pub frame: [u8; Self::SIZE],
+}
+
+impl PrimaryHeader {
+    pub const SIZE: usize = 6;
 }
 
 impl TryFrom<&[u8]> for PrimaryHeader {
     type Error = ParserError;
 
     fn try_from(frame: &[u8]) -> Result<Self, Self::Error> {
-        if frame.len() < PRIMARY_HEADER_SIZE {
+        if frame.len() < Self::SIZE {
             return Err(ParserError::InvalidFrameLength {
-                expected_size_bytes: PRIMARY_HEADER_SIZE,
+                expected_size_bytes: Self::SIZE,
                 received_size_bytes: frame.len(),
             });
         }
@@ -51,7 +54,7 @@ impl TryFrom<&[u8]> for PrimaryHeader {
             sequence_flags,
             packet_sequence_count,
             packet_data_length,
-            frame: frame[..PRIMARY_HEADER_SIZE]
+            frame: frame[..Self::SIZE]
                 .try_into()
                 .expect("Enforced by const value"),
         })
