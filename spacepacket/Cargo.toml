@@ -13,3 +13,7 @@ hex = "0.4.3"
 [[bench]]
 name = "spacepacket"
 harness = false
+
+[[bench]]
+name = "primary_header"
+harness = false
