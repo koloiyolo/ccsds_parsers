@@ -39,8 +39,11 @@ impl TryFrom<&[u8]> for PrimaryHeader {
             PacketType::SPP_HEADER_POSITION as u16,
             1,
         ) as u8)?;
-        let secondary_header_flag =
-            SecondaryHeaderFlag::try_from(extract_value_from_left(first_octets_pair, 4, 1) as u8)?;
+        let secondary_header_flag = SecondaryHeaderFlag::try_from(extract_value_from_left(
+            first_octets_pair,
+            SecondaryHeaderFlag::SPP_HEADER_POSITION as u16,
+            1,
+        ) as u8)?;
 
         let application_process_id = extract_value_from_left(first_octets_pair, 5, 11);
 
@@ -115,7 +118,6 @@ impl std::fmt::Display for PrimaryHeader {
 }
 
 /// https://ccsds.org/publications/bluebooks/entry/3264/ page 33
-/// Bit 3 of the Packet Primary Header shall contain the Packet Type.
 ///
 /// The Packet Type shall be used to distinguish Packets used for telemetry (or reporting)
 /// from Packets used for telecommand (or requesting).
@@ -125,13 +127,14 @@ impl std::fmt::Display for PrimaryHeader {
 #[repr(u8)]
 #[deku(bits = "1", id_type = "u8", endian = "big")]
 pub enum PacketType {
-    Telemetry = Self::TELEMETRY_BIT_VALUE,
-    Telecommand = Self::TELECOMMAND_BIT_VALUE,
+    Telemetry = Self::TELEMETRY_VALUE,
+    Telecommand = Self::TELECOMMAND_VALUE,
 }
 
 impl PacketType {
-    const TELEMETRY_BIT_VALUE: u8 = 0b0;
-    const TELECOMMAND_BIT_VALUE: u8 = 0b1;
+    const TELEMETRY_VALUE: u8 = 0b0;
+    const TELECOMMAND_VALUE: u8 = 0b1;
+    /// Bit 3 of the Packet Primary Header shall contain the Packet Type.
     const SPP_HEADER_POSITION: usize = 3;
 }
 
@@ -140,8 +143,8 @@ impl TryFrom<u8> for PacketType {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            Self::TELEMETRY_BIT_VALUE => Ok(Self::Telemetry),
-            Self::TELECOMMAND_BIT_VALUE => Ok(Self::Telecommand),
+            Self::TELEMETRY_VALUE => Ok(Self::Telemetry),
+            Self::TELECOMMAND_VALUE => Ok(Self::Telecommand),
             _ => Err(ParserError::ValueOutOfBounds {
                 value: value.to_string(),
                 parsed_type: "PacketType".into(),
@@ -164,12 +167,24 @@ impl std::fmt::Display for PacketType {
 }
 
 /// https://ccsds.org/publications/bluebooks/entry/3264/ page 33
+///
+/// The Secondary Header Flag shall indicate the presence or absence
+/// of the Packet Secondary Header within this Space Packet.
+/// It shall be ‘1’ if a Packet Secondary Header is present;
+/// it shall be ‘0’ if a Packet Secondary Header is not present.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, DekuRead, DekuWrite, DekuSize)]
 #[repr(u8)]
 #[deku(bits = "1", id_type = "u8", endian = "big")]
 pub enum SecondaryHeaderFlag {
-    NotPresent = 0,
-    Present = 1,
+    NotPresent = Self::NOT_PRESENT_VALUE,
+    Present = Self::PRESENT_VALUE,
+}
+
+impl SecondaryHeaderFlag {
+    const NOT_PRESENT_VALUE: u8 = 0b0;
+    const PRESENT_VALUE: u8 = 0b1;
+    /// Bit 4 of the Packet Primary Header shall contain the Secondary Header Flag.
+    const SPP_HEADER_POSITION: usize = 4;
 }
 
 impl TryFrom<u8> for SecondaryHeaderFlag {
@@ -177,8 +192,8 @@ impl TryFrom<u8> for SecondaryHeaderFlag {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(Self::NotPresent),
-            1 => Ok(Self::Present),
+            Self::NOT_PRESENT_VALUE => Ok(Self::NotPresent),
+            Self::PRESENT_VALUE => Ok(Self::Present),
             _ => Err(ParserError::ValueOutOfBounds {
                 value: value.to_string(),
                 parsed_type: "SecondaryHeaderFlag".into(),
@@ -276,11 +291,11 @@ mod tests {
     fn parse_packet_type_values() {
         // Imperative implementation
         assert_eq!(
-            PacketType::try_from(PacketType::TELECOMMAND_BIT_VALUE).unwrap(),
+            PacketType::try_from(PacketType::TELECOMMAND_VALUE).unwrap(),
             PacketType::Telecommand
         );
         assert_eq!(
-            PacketType::try_from(PacketType::TELEMETRY_BIT_VALUE).unwrap(),
+            PacketType::try_from(PacketType::TELEMETRY_VALUE).unwrap(),
             PacketType::Telemetry
         );
         assert!(PacketType::try_from(0b11).is_err());
@@ -296,15 +311,30 @@ mod tests {
 
     #[test]
     fn parse_secondary_header_flag_values() {
+        // Imperative implementation
         assert_eq!(
-            SecondaryHeaderFlag::try_from(0).unwrap(),
+            SecondaryHeaderFlag::try_from(SecondaryHeaderFlag::NOT_PRESENT_VALUE).unwrap(),
             SecondaryHeaderFlag::NotPresent,
         );
         assert_eq!(
-            SecondaryHeaderFlag::try_from(1).unwrap(),
+            SecondaryHeaderFlag::try_from(SecondaryHeaderFlag::PRESENT_VALUE).unwrap(),
             SecondaryHeaderFlag::Present,
         );
         assert!(SecondaryHeaderFlag::try_from(2).is_err());
+
+        // Declarative implementation
+        let (_, result) = SecondaryHeaderFlag::from_bytes((
+            &[0b0000_0000],
+            SecondaryHeaderFlag::SPP_HEADER_POSITION,
+        ))
+        .unwrap();
+        assert_eq!(result, SecondaryHeaderFlag::NotPresent);
+        let (_, result) = SecondaryHeaderFlag::from_bytes((
+            &[0b0000_1000],
+            SecondaryHeaderFlag::SPP_HEADER_POSITION,
+        ))
+        .unwrap();
+        assert_eq!(result, SecondaryHeaderFlag::Present)
     }
 
     #[test]
