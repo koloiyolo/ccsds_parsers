@@ -216,13 +216,38 @@ impl std::fmt::Display for SecondaryHeaderFlag {
 }
 
 /// https://ccsds.org/publications/bluebooks/entry/3264/ page 34
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// The use of the Sequence Flags is not mandatory for the users of the SPP.
+/// However, the Sequence Flags may be used by the user of the Packet Service to
+/// indicate that the User Data contained within the Space Packet is a segment of a
+/// larger set of application data.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, DekuRead, DekuWrite, DekuSize)]
+#[deku(bits = "2", id_type = "u8", endian = "big")]
 #[repr(u8)]
 pub enum SequenceFlags {
-    ContinuationSegment = 0b00,
-    StartSegment = 0b01,
-    EndSegment = 0b10,
-    Unsegmented = 0b11,
+    /// `0b00` if the Space Packet contains a continuation segment of User Data.
+    ContinuationSegment = Self::CONTINUATION_SEGMENT_VALUE,
+    /// `0b01` if the Space Packet contains the first segment of User Data.
+    StartSegment = Self::START_SEGMENT_VALUE,
+    /// `0b10` if the Space Packet contains the last segment of User Data.
+    EndSegment = Self::END_SEGMENT_VALUE,
+    /// `0b11` if the Space Packet contains unsegmented User Data.
+    Unsegmented = Self::UNSEGMENTED_VALUE,
+}
+
+impl SequenceFlags {
+    /// `0b00` if the Space Packet contains a continuation segment of User Data.
+    const CONTINUATION_SEGMENT_VALUE: u8 = 0b00;
+    /// `0b01` if the Space Packet contains the first segment of User Data.
+    const START_SEGMENT_VALUE: u8 = 0b01;
+    /// `0b10` if the Space Packet contains the last segment of User Data.
+    const END_SEGMENT_VALUE: u8 = 0b10;
+    /// `0b11` if the Space Packet contains unsegmented User Data.
+    const UNSEGMENTED_VALUE: u8 = 0b11;
+
+    /// Bits 16–17 of the Packet Primary Header shall contain the Sequence Flags.
+    #[allow(dead_code)]
+    const SPP_HEADER_POSITION: usize = 16;
 }
 
 impl TryFrom<u8> for SequenceFlags {
@@ -230,10 +255,10 @@ impl TryFrom<u8> for SequenceFlags {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0b00 => Ok(Self::ContinuationSegment),
-            0b01 => Ok(Self::StartSegment),
-            0b10 => Ok(Self::EndSegment),
-            0b11 => Ok(Self::Unsegmented),
+            Self::CONTINUATION_SEGMENT_VALUE => Ok(Self::ContinuationSegment),
+            Self::START_SEGMENT_VALUE => Ok(Self::StartSegment),
+            Self::END_SEGMENT_VALUE => Ok(Self::EndSegment),
+            Self::UNSEGMENTED_VALUE => Ok(Self::Unsegmented),
             _ => Err(ParserError::ValueOutOfBounds {
                 value: value.to_string(),
                 parsed_type: "SequenceFlags".into(),
@@ -339,6 +364,7 @@ mod tests {
 
     #[test]
     fn parse_segmentation_flag() {
+        // Imperative implementation
         assert_eq!(
             SequenceFlags::try_from(0b00).unwrap(),
             SequenceFlags::ContinuationSegment,
@@ -357,5 +383,34 @@ mod tests {
         );
         assert!(SequenceFlags::try_from(42).is_err());
         assert!(SequenceFlags::try_from(255).is_err());
+
+        // Declarative implementation
+        let spp_with_continuation_segment = [0, 0, 0b0000_0000];
+        let (_, result) = SequenceFlags::from_bytes((
+            &spp_with_continuation_segment,
+            SequenceFlags::SPP_HEADER_POSITION,
+        ))
+        .unwrap();
+        assert_eq!(result, SequenceFlags::ContinuationSegment);
+
+        let spp_with_start_segment = [0, 0, 0b0100_0000];
+        let (_, result) = SequenceFlags::from_bytes((
+            &spp_with_start_segment,
+            SequenceFlags::SPP_HEADER_POSITION,
+        ))
+        .unwrap();
+        assert_eq!(result, SequenceFlags::StartSegment);
+
+        let spp_with_end_segment = [0, 0, 0b1000_0000];
+        let (_, result) =
+            SequenceFlags::from_bytes((&spp_with_end_segment, SequenceFlags::SPP_HEADER_POSITION))
+                .unwrap();
+        assert_eq!(result, SequenceFlags::EndSegment);
+
+        let spp_with_unsegmented = [0, 0, 0b1100_0000];
+        let (_, result) =
+            SequenceFlags::from_bytes((&spp_with_unsegmented, SequenceFlags::SPP_HEADER_POSITION))
+                .unwrap();
+        assert_eq!(result, SequenceFlags::Unsegmented);
     }
 }
