@@ -1,4 +1,4 @@
-use crate::errors::ParserError;
+use common::ParserError;
 
 const CRC16_BYTE_LEN: usize = 2;
 const CRC16_1ST_BYTE_OFFSET_FROM_END: usize = 2;

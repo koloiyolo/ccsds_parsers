@@ -1,19 +1,16 @@
 use std::hint::black_box;
 use std::time::Instant;
 
-use ccsds::spacepacket::SpacePacket;
+use space_data_link::telemetry::packet::TelemetryTransferFrame;
 
 fn main() {
-    let packet = vec![
-        0x0c, 0x00, 0xc0, 0x01, 0x00, 0x0a, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x53, 0x70, 0x61, 0x63,
-        0x65,
-    ];
+    let packet = vec![0xa5, 0xb3, 0x12, 0x34, 0xab, 0xcd, 0xff];
     let iterations = 10_000_000;
 
     let start = Instant::now();
 
     for _ in 0..iterations {
-        let result = SpacePacket::try_from(black_box(packet.clone()));
+        let result = TelemetryTransferFrame::try_from(black_box(packet.clone()));
         let _ = black_box(result);
     }
 

@@ -1,4 +1,6 @@
-use crate::spacepacket::primary_header::{PRIMARY_HEADER_SIZE, PrimaryHeader, SecondaryHeaderFlag};
+use common::ParserError;
+
+use crate::primary_header::{PrimaryHeader, SecondaryHeaderFlag};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 
@@ -10,15 +12,15 @@ pub struct SpacePacket {
 }
 
 impl TryFrom<Vec<u8>> for SpacePacket {
-    type Error = crate::errors::ParserError;
+    type Error = ParserError;
 
     fn try_from(frame: Vec<u8>) -> Result<Self, Self::Error> {
         let primary_header = PrimaryHeader::try_from(frame.as_slice())?;
         let packet_data = match primary_header.secondary_header_flag {
-            SecondaryHeaderFlag::NotPresent => frame[PRIMARY_HEADER_SIZE..].to_vec(),
+            SecondaryHeaderFlag::NotPresent => frame[PrimaryHeader::SIZE..].to_vec(),
             SecondaryHeaderFlag::Present => {
                 let secondary_header_size = 0; // TODO: Implement Secondary Header.
-                let offset = PRIMARY_HEADER_SIZE + secondary_header_size;
+                let offset = PrimaryHeader::SIZE + secondary_header_size;
                 frame[offset..].to_vec()
             }
         };
@@ -49,7 +51,7 @@ impl std::fmt::Display for SpacePacket {
 
 #[cfg(test)]
 mod tests {
-    use crate::spacepacket::primary_header::{PacketType, SecondaryHeaderFlag, SequenceFlags};
+    use crate::primary_header::{PacketType, SequenceFlags};
 
     use super::*;
 

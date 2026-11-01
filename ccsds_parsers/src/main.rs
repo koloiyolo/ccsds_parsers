@@ -1,9 +1,9 @@
 mod cli;
 
-use ccsds::{space_data_link::telemetry::packet::TelemetryTransferFrame, spacepacket::SpacePacket};
-
 use crate::cli::{CcsdsProtocol, Cli};
 use clap::Parser;
+use space_data_link::telemetry::packet::TelemetryTransferFrame;
+use spacepacket::SpacePacket;
 
 fn main() {
     let arguments = Cli::parse();

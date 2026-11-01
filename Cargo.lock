@@ -53,20 +53,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "ccsds"
-version = "0.1.0"
-dependencies = [
- "crc16",
- "hex",
-]
-
-[[package]]
 name = "ccsds_parsers"
 version = "0.1.0"
 dependencies = [
- "ccsds",
  "clap",
  "hex",
+ "space_data_link",
+ "spacepacket",
 ]
 
 [[package]]
@@ -116,6 +109,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
 
 [[package]]
+name = "common"
+version = "0.1.0"
+
+[[package]]
 name = "crc16"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -161,6 +158,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "space_data_link"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "crc16",
+ "hex",
+]
+
+[[package]]
+name = "spacepacket"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "crc16",
+ "hex",
 ]
 
 [[package]]

@@ -5,6 +5,8 @@ edition.workspace = true
 
 
 [dependencies]
-ccsds = { path = "../ccsds" }
+space_data_link = { path = "../space_data_link" }
+spacepacket = { path = "../spacepacket" }
+
 clap = { version = "4.6.6", features = ["derive"] }
 hex = "0.4.3"
