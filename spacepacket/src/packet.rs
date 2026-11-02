@@ -1,13 +1,15 @@
 use common::ParserError;
+use deku::{DekuRead, DekuWrite};
 
 use crate::primary_header::{PrimaryHeader, SecondaryHeaderFlag};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-
+#[derive(Debug, Clone, PartialEq, Eq, DekuRead, DekuWrite)]
 /// https://ccsds.org/publications/bluebooks/entry/3264/
 pub struct SpacePacket {
     pub primary_header: PrimaryHeader,
+    #[deku(skip)]
     pub packet_data: Vec<u8>,
+    #[deku(skip)]
     pub frame: Vec<u8>,
 }
 
@@ -51,18 +53,20 @@ impl std::fmt::Display for SpacePacket {
 
 #[cfg(test)]
 mod tests {
+    use deku::DekuContainerRead;
+
     use crate::primary_header::{PacketType, SequenceFlags};
 
     use super::*;
 
+    const EXAMPLE_FRAME: [u8; 16] = [
+        0x0c, 0x00, 0xc0, 0x01, 0x00, 0x0a, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x53, 0x70, 0x61, 0x63,
+        0x65,
+    ];
+
     #[test]
     fn parse_example_spp_frame() {
-        let frame = vec![
-            0x0c, 0x00, 0xc0, 0x01, 0x00, 0x0a, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x53, 0x70, 0x61,
-            0x63, 0x65,
-        ];
-
-        let spp = SpacePacket::try_from(frame).unwrap();
+        let spp = SpacePacket::try_from(EXAMPLE_FRAME.to_vec()).unwrap();
         assert_eq!(spp.primary_header.packet_version_number, 0b000);
         assert_eq!(spp.primary_header.packet_type, PacketType::Telemetry);
         assert_eq!(
@@ -75,6 +79,17 @@ mod tests {
             SequenceFlags::Unsegmented
         );
         assert_eq!(spp.primary_header.packet_sequence_count, 1);
+    }
+
+    #[test]
+    fn ensure_declarative_output_matches_imperative() {
+        let imperative_spp = SpacePacket::try_from(EXAMPLE_FRAME.to_vec()).unwrap();
+        let (_, declarative_spp) = SpacePacket::from_bytes((&EXAMPLE_FRAME, 0)).unwrap();
+
+        assert_eq!(
+            imperative_spp.primary_header,
+            declarative_spp.primary_header
+        )
     }
 
     #[test]
