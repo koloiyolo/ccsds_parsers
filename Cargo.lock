@@ -69,6 +69,7 @@ name = "ccsds_parsers"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "deku",
  "hex",
  "space_data_link",
  "spacepacket",

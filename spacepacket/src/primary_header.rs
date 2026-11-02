@@ -1,5 +1,5 @@
 use common::{ParserError, extract_value_from_left};
-use deku::{DekuContainerRead, DekuRead, DekuSize, DekuWrite};
+use deku::{DekuContainerWrite, DekuRead, DekuSize, DekuWrite};
 
 const DEFAULT_DISPLAY_PREFIX: &str = "  ";
 
@@ -32,46 +32,10 @@ pub struct PrimaryHeader {
     /// length (in octets) of the Packet Data Field.
     #[deku(bits = 16)]
     pub packet_data_length: u16,
-    #[deku(reader = "Self::read_frame(deku::reader)")]
-    pub frame: [u8; Self::SIZE],
 }
 
 impl PrimaryHeader {
     pub const SIZE: usize = 6;
-
-    #[allow(unused)]
-    /// Extracts spacepacket primary header from the provided spacepacket
-    pub fn from_spacepacket(spp_bytes: &[u8]) -> Result<Self, ParserError> {
-        let (_, mut header) = PrimaryHeader::from_bytes((spp_bytes, 0))?;
-        header.frame = spp_bytes.to_owned()[..Self::SIZE]
-            .try_into()
-            .expect("Enforced by |e| ParserError::from(e)const value");
-        Ok(header)
-    }
-
-    fn read_frame<R: std::io::Read + std::io::Seek>(
-        reader: &mut deku::reader::Reader<R>,
-    ) -> Result<[u8; Self::SIZE], deku::DekuError> {
-        use std::io::{Seek, SeekFrom};
-
-        let end = reader
-            .stream_position()
-            .map_err(|e| deku::DekuError::Io(e.kind()))?;
-        let start = end - Self::SIZE as u64;
-
-        reader
-            .seek(SeekFrom::Start(start))
-            .map_err(|e| deku::DekuError::Io(e.kind()))?;
-
-        let mut frame = [0; Self::SIZE];
-        reader.read_bytes_const(&mut frame, deku::ctx::Order::Msb0)?;
-
-        reader
-            .seek(SeekFrom::Start(end))
-            .map_err(|e| deku::DekuError::Io(e.kind()))?;
-
-        Ok(frame)
-    }
 }
 
 impl TryFrom<&Vec<u8>> for PrimaryHeader {
@@ -115,9 +79,6 @@ impl TryFrom<&Vec<u8>> for PrimaryHeader {
             sequence_flags,
             packet_sequence_count,
             packet_data_length,
-            frame: frame[..Self::SIZE]
-                .try_into()
-                .expect("Enforced by const value"),
         })
     }
 }
@@ -166,7 +127,10 @@ impl std::fmt::Display for PrimaryHeader {
         writeln!(
             f,
             "{DEFAULT_DISPLAY_PREFIX}  Frame: {}",
-            hex::encode(self.frame)
+            hex::encode(
+                self.to_bytes()
+                    .expect("Deku::to_bytes() failed, invalid data")
+            )
         )
     }
 }
