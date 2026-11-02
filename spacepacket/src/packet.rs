@@ -1,5 +1,5 @@
 use common::ParserError;
-use deku::{DekuRead, DekuWrite};
+use deku::{DekuContainerWrite, DekuRead, DekuWrite};
 
 use crate::primary_header::{PrimaryHeader, SecondaryHeaderFlag};
 
@@ -7,10 +7,8 @@ use crate::primary_header::{PrimaryHeader, SecondaryHeaderFlag};
 /// https://ccsds.org/publications/bluebooks/entry/3264/
 pub struct SpacePacket {
     pub primary_header: PrimaryHeader,
-    #[deku(skip)]
+    #[deku(count = "primary_header.packet_data_length")]
     pub packet_data: Vec<u8>,
-    #[deku(skip)]
-    pub frame: Vec<u8>,
 }
 
 impl TryFrom<Vec<u8>> for SpacePacket {
@@ -29,7 +27,6 @@ impl TryFrom<Vec<u8>> for SpacePacket {
         Ok(Self {
             primary_header,
             packet_data,
-            frame,
         })
     }
 }
@@ -46,7 +43,11 @@ impl std::fmt::Display for SpacePacket {
             String::from_utf8(self.packet_data.to_vec())
                 .expect("Failed to parse SPP Packet Data to UTF-8")
         )?;
-        writeln!(f, "  Frame: {}", hex::encode(&self.frame))?;
+        writeln!(
+            f,
+            "  Frame: {}",
+            hex::encode(self.to_bytes().expect("Invalid data"))
+        )?;
         Ok(())
     }
 }

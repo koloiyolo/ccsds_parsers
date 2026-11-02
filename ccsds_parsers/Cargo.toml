@@ -10,3 +10,4 @@ spacepacket = { path = "../spacepacket" }
 
 clap = { version = "4.6.6", features = ["derive"] }
 hex = "0.4.3"
+deku = "0.20.3"
