@@ -6,8 +6,16 @@ use crate::{
     primary_header::{PrimaryHeader, SecondaryHeaderFlag},
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, DekuRead, DekuWrite)]
 /// https://ccsds.org/publications/bluebooks/entry/3264/
+///
+/// A Space Packet shall include the defined fields, positioned contiguously, in the
+/// following sequence:
+///
+/// * Packet Primary Header (6 octets, mandatory);
+/// * Packet Data Field (from 1 to 65536 octets, mandatory).
+///
+/// Space Packet shall consist of at least 7 and at most 65542 octets
+#[derive(Debug, Clone, PartialEq, Eq, DekuRead, DekuWrite)]
 pub struct SpacePacket {
     pub primary_header: PrimaryHeader,
     #[deku(
