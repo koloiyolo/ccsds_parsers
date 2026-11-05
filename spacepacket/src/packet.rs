@@ -94,6 +94,8 @@ mod tests {
             SequenceFlags::Unsegmented
         );
         assert_eq!(spp.primary_header.packet_sequence_count, 1);
+
+        let _ = format!("{}", spp);
     }
 
     #[test]
