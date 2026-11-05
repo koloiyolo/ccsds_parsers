@@ -3,6 +3,9 @@ name: ci
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "**/coverage.svg"
+
   pull_request:
     branches: ["main"]
 
@@ -31,10 +34,13 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
       - name: Install cargo-tarpaulin
         run: cargo install cargo-tarpaulin --locked
       - name: Generate coverage report
         run: cargo tarpaulin --workspace -o lcov --output-dir coverage
+      - name: Work around badge action LCOV parser
+        run: sed -i '/^TN:/d' coverage/lcov.info
       - uses: GoogleCloudPlatform/lcov-coverage-badge@v2.1.0
         with:
           file: coverage/lcov.info
