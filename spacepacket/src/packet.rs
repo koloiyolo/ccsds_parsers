@@ -1,14 +1,19 @@
 use common::ParserError;
 use deku::{DekuContainerWrite, DekuRead, DekuWrite};
 
-use crate::primary_header::{PrimaryHeader, SecondaryHeaderFlag};
+use crate::{
+    packet_data_field::PacketDataField,
+    primary_header::{PrimaryHeader, SecondaryHeaderFlag},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, DekuRead, DekuWrite)]
 /// https://ccsds.org/publications/bluebooks/entry/3264/
 pub struct SpacePacket {
     pub primary_header: PrimaryHeader,
-    #[deku(count = "primary_header.packet_data_length")]
-    pub packet_data: Vec<u8>,
+    #[deku(
+        ctx = "primary_header.packet_data_length as usize, primary_header.secondary_header_flag"
+    )]
+    pub packet_data: PacketDataField,
 }
 
 impl TryFrom<Vec<u8>> for SpacePacket {
@@ -24,6 +29,7 @@ impl TryFrom<Vec<u8>> for SpacePacket {
                 frame[offset..].to_vec()
             }
         };
+        let packet_data = PacketDataField { raw: packet_data };
         Ok(Self {
             primary_header,
             packet_data,
@@ -36,11 +42,11 @@ impl std::fmt::Display for SpacePacket {
         writeln!(f, "CCSDS Space Packet\n")?;
         writeln!(f, "{}", self.primary_header)?;
         writeln!(f, "  Packet Data")?;
-        writeln!(f, "    Frame: {}", hex::encode(&self.packet_data))?;
+        writeln!(f, "    Frame: {}", hex::encode(&self.packet_data.raw))?;
         writeln!(
             f,
             "    UTF-8: {}\n",
-            String::from_utf8(self.packet_data.to_vec())
+            String::from_utf8(self.packet_data.raw.to_vec())
                 .expect("Failed to parse SPP Packet Data to UTF-8")
         )?;
         writeln!(
