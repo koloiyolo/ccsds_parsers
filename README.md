@@ -1,5 +1,7 @@
 # CCSDS Parsers
 
+[![Rust](https://github.com/koloiyolo/ccsds_parsers/actions/workflows/ci.yml/badge.svg)](https://github.com/koloiyolo/ccsds_parsers/actions/workflows/ci.yml)
+
 Collection of simple parsers used to extract metadata from CCSDS compliant frames.
 
 ## Installation
