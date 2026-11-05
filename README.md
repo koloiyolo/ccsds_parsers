@@ -1,6 +1,7 @@
 # CCSDS Parsers
 
-[![Rust](https://github.com/koloiyolo/ccsds_parsers/actions/workflows/ci.yml/badge.svg)](https://github.com/koloiyolo/ccsds_parsers/actions/workflows/ci.yml)
+[![ci](https://github.com/koloiyolo/ccsds_parsers/actions/workflows/ci.yml/badge.svg)](https://github.com/koloiyolo/ccsds_parsers/actions/workflows/ci.yml)
+[![coverage](coverage.svg)](https://github.com/GoogleCloudPlatform/lcov-coverage-badge)
 
 Collection of simple parsers used to extract metadata from CCSDS compliant frames.
 
@@ -54,6 +55,21 @@ Run with flag `--help` for all available options:
 ```bash
 ccsds_parsers --help
 ```
+
+## Test coverage
+
+Coverage is measured with [cargo-tarpaulin] in CI
+and uploaded to [Codecov].
+To generate an HTML report locally (the Nix dev shell includes Tarpaulin):
+
+```bash
+cargo tarpaulin --workspace --out Html --output-dir coverage
+```
+
+Open `coverage/tarpaulin-report.html` to view the report.
+
+[cargo-tarpaulin]: https://github.com/xd009642/tarpaulin
+[Codecov]: https://codecov.io/gh/koloiyolo/ccsds_parsers
 
 ## Supported -- current status
 

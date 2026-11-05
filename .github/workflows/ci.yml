@@ -1,4 +1,4 @@
-name: Rust
+name: ci
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v3
       - uses: astral-sh/setup-uv@v7
       - uses: pre-commit/action@v3.0.1
@@ -23,7 +23,26 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Run tests
-        run: cargo test
+        run: cargo test --workspace
+
+  coverage:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin --locked
+      - name: Generate coverage report
+        run: cargo tarpaulin --workspace -o lcov --output-dir coverage
+      - uses: GoogleCloudPlatform/lcov-coverage-badge@v2.1.0
+        with:
+          file: coverage/lcov.info
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+          style: flat
+          critical: 60
+          warning: 75
+          fail_ci_if_error: true
 
   bench:
     runs-on: ubuntu-latest
