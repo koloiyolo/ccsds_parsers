@@ -81,7 +81,7 @@ Open `coverage/tarpaulin-report.html` to view the report.
 
 ### Space Data Link TC
 
-N/A
+- [x] Primary header parsing
 
 ### Space Packet
 
