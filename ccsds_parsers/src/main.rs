@@ -3,7 +3,9 @@ mod cli;
 use crate::cli::{CcsdsProtocol, Cli};
 use clap::Parser;
 use deku::DekuContainerRead;
-use space_data_link::telemetry::packet::TelemetryTransferFrame;
+use space_data_link::{
+    telecommand::TelecommandTransferFrame, telemetry::packet::TelemetryTransferFrame,
+};
 use spacepacket::SpacePacket;
 
 fn main() {
@@ -26,7 +28,10 @@ fn main() {
                 Err(e) => eprintln!("Failed to parse provided frame. \nReason: {e:?}"),
             }
         }
-        CcsdsProtocol::DataLinkTc => todo!("CLTU parser not yet implemented"),
+        CcsdsProtocol::DataLinkTc => match TelecommandTransferFrame::from_bytes((&frame, offset)) {
+            Ok((_, tctf)) => println!("{tctf:#?}"),
+            Err(e) => eprintln!("Failed to parse provided frame. \nReason: {e:?}"),
+        },
         CcsdsProtocol::SpacePacket => match SpacePacket::from_bytes((&frame, offset)) {
             Ok((_, spp)) => println!("{spp}"),
             Err(e) => eprintln!("Failed to parse provided frame. \nReason: {e:?}"),

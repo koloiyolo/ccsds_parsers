@@ -6,6 +6,7 @@ use crate::telemetry::{
     primary_header::{OperationalControlFieldFlag, TransferFramePrimaryHeader},
 };
 
+/// https://ccsds.org/publications/bluebooks/entry/3274/
 pub struct TelemetryTransferFrame {
     pub primary_header: TransferFramePrimaryHeader,
     pub operational_control_field: Option<OperationalControlField>,
