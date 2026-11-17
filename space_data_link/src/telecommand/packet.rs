@@ -19,7 +19,7 @@ pub struct TelecommandTransferFrame {
 mod tests {
     use deku::DekuContainerRead;
 
-    use crate::telecommand::primary_header::BypassFlag;
+    use crate::telecommand::primary_header::{BypassFlag, ControlCommandFlag};
 
     use super::*;
 
@@ -35,7 +35,10 @@ mod tests {
 
         assert_eq!(tctf.primary_header.version_number, 0);
         assert_eq!(tctf.primary_header.bypass_flag, BypassFlag::TypeA);
-        assert_eq!(tctf.primary_header.control_command_flag, 0);
+        assert_eq!(
+            tctf.primary_header.control_command_flag,
+            ControlCommandFlag::TypeD
+        );
         assert_eq!(tctf.primary_header.rsvd_spare, 0);
         assert_eq!(tctf.primary_header.spacecraft_id, 516);
         assert_eq!(tctf.primary_header.virtual_channel_id, 0x01);

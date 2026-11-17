@@ -13,8 +13,7 @@ pub struct TransferFramePrimaryHeader {
     /// Bypass Flag (1 bit, mandatory)
     pub bypass_flag: BypassFlag,
     /// Control Command Flag (1 bit, mandatory)
-    #[deku(bits = 1)]
-    pub control_command_flag: u8,
+    pub control_command_flag: ControlCommandFlag,
     /// Reserved Spare (2 bits, mandatory).
     /// These two bits are reserved for future application and shall be set to ‘00
     #[deku(bits = 2)]
@@ -57,4 +56,28 @@ pub enum BypassFlag {
 impl BypassFlag {
     const TYPE_A_VALUE: u8 = 0;
     const TYPE_B_VALUE: u8 = 1;
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, DekuWrite, DekuRead)]
+#[repr(u8)]
+#[deku(
+    bits = "1",
+    id_type = "u8",
+    ctx = "_: deku::ctx::Endian",
+    ctx_default = "deku::ctx::Endian::Big"
+)]
+/// The single-bit Control Command Flag shall be used to specify whether the Data
+/// Field of the Transfer Frame is conveying Control Commands (Type-C) or Data (Type-D):
+///  * setting the Control Command Flag to value ‘0’ shall indicate that the Transfer Frame
+///    Data Field contains a Frame Data Unit (FDU) (Type-D);
+///  * setting the Control Command Flag to value ‘1’ shall indicate that the Transfer Frame
+///    Data Field contains control information (Type-C).
+pub enum ControlCommandFlag {
+    TypeD = Self::TYPE_D_VALUE,
+    TypeC = Self::TYPE_C_VALUE,
+}
+
+impl ControlCommandFlag {
+    const TYPE_D_VALUE: u8 = 0;
+    const TYPE_C_VALUE: u8 = 1;
 }
