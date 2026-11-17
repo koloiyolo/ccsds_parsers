@@ -1,7 +1,7 @@
 use std::hint::black_box;
 use std::time::Instant;
 
-use space_data_link::telemetry::packet::TelemetryTransferFrame;
+use space_data_link::TelemetryTransferFrame;
 
 fn main() {
     let packet = vec![0xa5, 0xb3, 0x12, 0x34, 0xab, 0xcd, 0xff];

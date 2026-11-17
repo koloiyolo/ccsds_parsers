@@ -2,8 +2,7 @@
 //!
 //! https://ccsds.org/publications/bluebooks/entry/3274/
 
+pub mod crc;
+pub mod operational_control_field;
 pub mod packet;
-
-mod crc;
-mod operational_control_field;
-mod primary_header;
+pub mod primary_header;

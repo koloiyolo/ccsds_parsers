@@ -3,9 +3,7 @@ mod cli;
 use crate::cli::{CcsdsProtocol, Cli};
 use clap::Parser;
 use deku::DekuContainerRead;
-use space_data_link::{
-    telecommand::TelecommandTransferFrame, telemetry::packet::TelemetryTransferFrame,
-};
+use space_data_link::{TelecommandTransferFrame, TelemetryTransferFrame};
 use spacepacket::SpacePacket;
 
 fn main() {
