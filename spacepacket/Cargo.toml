@@ -4,11 +4,11 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-common = { path = "../common" }
+common = { workspace = true }
 
-crc16 = "0.4.0"
-deku = "0.20.3"
-hex = "0.4.3"
+crc16 = { workspace = true }
+deku = { workspace = true }
+hex = { workspace = true }
 
 [[bench]]
 name = "spacepacket"
