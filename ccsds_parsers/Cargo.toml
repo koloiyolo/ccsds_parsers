@@ -5,9 +5,9 @@ edition.workspace = true
 
 
 [dependencies]
-space_data_link = { path = "../space_data_link" }
-spacepacket = { path = "../spacepacket" }
+space_data_link = { workspace = true }
+spacepacket = { workspace = true }
 
 clap = { version = "4.6.6", features = ["derive"] }
-hex = "0.4.3"
-deku = "0.20.3"
+deku = { workspace = true }
+hex = { workspace = true }
