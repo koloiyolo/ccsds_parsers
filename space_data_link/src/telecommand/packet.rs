@@ -1,6 +1,8 @@
 use deku::{DekuRead, DekuWrite};
 
-use crate::telecommand::primary_header::TransferFramePrimaryHeader;
+use crate::telecommand::{
+    data_field::TransferFrameDataField, primary_header::TransferFramePrimaryHeader,
+};
 
 /// TC Transfer Frame shall encompass the major fields, positioned contiguously,
 /// in the following sequence:
@@ -8,11 +10,14 @@ use crate::telecommand::primary_header::TransferFramePrimaryHeader;
 ///   * Transfer Frame Header (5 octets, mandatory);
 ///   * Transfer Frame Data Field (up to 1019 or 1017 octets, mandatory);
 ///   * Frame Error Control Field (2 octets, optional).
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, DekuWrite, DekuRead)]
+#[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, DekuWrite, DekuRead)]
 pub struct TelecommandTransferFrame {
+    #[deku(assert = "primary_header.frame_length.tctf_without_header_length().is_some()")]
     pub primary_header: TransferFramePrimaryHeader,
-    #[deku(read_all)]
-    pub data_field: Vec<u8>,
+    #[deku(
+        ctx = "primary_header.frame_length.tctf_without_header_length().expect(\"invalid TCTF frame length\")"
+    )]
+    pub data_field: TransferFrameDataField,
 }
 
 #[cfg(test)]
@@ -40,9 +45,9 @@ mod tests {
             ControlCommandFlag::TypeD
         );
         assert_eq!(tctf.primary_header.rsvd_spare, 0);
-        assert_eq!(tctf.primary_header.spacecraft_id, 516);
+        assert_eq!(tctf.primary_header.spacecraft_id, 18);
         assert_eq!(tctf.primary_header.virtual_channel_id, 0x01);
-        assert_eq!(tctf.primary_header.frame_length, 260);
+        assert_eq!(tctf.primary_header.frame_length, 17.into());
         assert_eq!(tctf.primary_header.frame_sequence_number, 0);
     }
 }

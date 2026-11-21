@@ -98,6 +98,6 @@ Open `coverage/tarpaulin-report.html` to view the report.
 
 [CCSDS Space Packet protocol]: https://ccsds.org/publications/bluebooks/entry/3264/
 [CCSDS TM Space Data link protocol]: https://ccsds.org/publications/bluebooks/entry/3274/
-[CCSDS TC Space Data link protocol]: https://ccsds.org/publications/bluebooks/entry/3261/
+[CCSDS TC Space Data link protocol]: https://ccsds.org/publications/bluebooks/entry/3279/
 [CCSDS Space Data Link Security Protocol]: https://ccsds.org/publications/bluebooks/entry/3258/
 [CCSDS Space Data Link Security Protocol—Extended Procedures]: https://ccsds.org/publications/bluebooks/entry/3259/
