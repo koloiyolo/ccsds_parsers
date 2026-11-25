@@ -30,9 +30,14 @@
               rust-bin.stable.latest.default
               cargo-tarpaulin
               pre-commit
+              cargo-llvm-cov
+              cargo-nextest
+              llvmPackages_23.llvm
             ];
 
             shellHook = ''
+              export LLVM_COV="${pkgs.llvmPackages_23.llvm}/bin/llvm-cov"
+              export LLVM_PROFDATA="${pkgs.llvmPackages_23.llvm}/bin/llvm-profdata"
               pre-commit install
             '';
           };
