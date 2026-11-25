@@ -58,16 +58,16 @@ ccsds_parsers --help
 
 ## Test coverage
 
-Coverage is measured with [cargo-tarpaulin] in CI.
-To generate an HTML report locally (the Nix dev shell includes Tarpaulin):
+Coverage is measured with [cargo-llvm-cov] in CI.
+To generate an HTML report locally (the Nix dev shell includes `cargo-llvm-cov`):
 
 ```bash
-cargo tarpaulin --workspace --out Html --output-dir coverage
+cargo llvm-cov --workspace --html --output-dir coverage
 ```
 
-Open `coverage/tarpaulin-report.html` to view the report.
+Open `coverage/html/index.html` to view the report.
 
-[cargo-tarpaulin]: https://github.com/xd009642/tarpaulin
+[cargo-llvm-cov]: https://github.com/taiki-e/cargo-llvm-cov
 
 ## Supported -- current status
 

@@ -35,10 +35,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin --locked
+      - name: Install LLVM coverage tools
+        run: |
+          rustup component add llvm-tools-preview
+          cargo install cargo-llvm-cov --locked
+      - name: Ensure `coverage` direcotry exists
+        run: mkdir -p coverage
       - name: Generate coverage report
-        run: cargo tarpaulin --workspace -o lcov --output-dir coverage
+        run: cargo llvm-cov --workspace --lcov --output-path coverage/lcov.info
       - name: Work around badge action LCOV parser
         run: sed -i '/^TN:/d' coverage/lcov.info
       - uses: GoogleCloudPlatform/lcov-coverage-badge@v2.1.0
